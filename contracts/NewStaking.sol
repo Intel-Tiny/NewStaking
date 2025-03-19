@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-// import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "hardhat/console.sol";
 contract staking is Ownable {
     ERC20 public stakingToken;
     struct Stake {
@@ -29,6 +27,7 @@ contract staking is Ownable {
     Stake[] public stakes;
     uint256 public totalNumberOfStake;
     bool public isOpen;
+    mapping(uint256 => uint256) public rewards;
 
     event Deposit(address user, uint256 amount, uint256 stakingType);
     event Withdraw(uint256 id, uint256 rewardAmount);
@@ -84,6 +83,7 @@ contract staking is Ownable {
         require(rewardAmount > 0, "low amount");
         cur.finished = true;
         stakingToken.transfer(msg.sender, cur.tokenAmount + rewardAmount);
+        rewards[_id] = rewardAmount;
         emit Withdraw(_id, rewardAmount);
     }
 
