@@ -19,7 +19,7 @@ describe("Create Initial Contracts of all types", async function() {
       await ethers.getSigners();
     console.log("\tAccount address\t", await owner.getAddress());
   });
-  it("deploy Henlo Token Contract", async function () {
+  it("deploy USDC Token Contract", async function () {
     const instanceToken = await ethers.getContractFactory("usdc");
     usdc = await instanceToken.deploy();
     usdcAddress = await usdc.getAddress();
