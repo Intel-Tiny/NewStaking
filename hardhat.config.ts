@@ -6,6 +6,7 @@ import "@nomicfoundation/hardhat-chai-matchers";
 
 const infuraKey = process.env.INFURA_API_KEY;
 const privateKey = process.env.PRIVATE_KEY?process.env.PRIVATE_KEY:"";
+const alchemyKey = process.env.ALCHEMY_KEY?process.env.ALCHEMY_KEY:"";
 const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.24",
@@ -23,7 +24,8 @@ const config: HardhatUserConfig = {
       accounts: [privateKey],
     },
     mainnet: {
-      url: `https://mainnet.infura.io/v3/${infuraKey}`,
+      // url: `https://mainnet.infura.io/v3/${infuraKey}`,
+      url: `https://eth-mainnet.g.alchemy.com/v2/${alchemyKey}`,
       accounts: [privateKey],
     },
     bnb_testnet: {

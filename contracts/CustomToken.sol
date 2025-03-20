@@ -13,7 +13,7 @@ contract usdc is ERC20, Ownable {
 
     // Override the decimals function to return 18
     function decimals() public view override returns (uint8) {
-        return 18;
+        return 9;
     }
 
     /**
