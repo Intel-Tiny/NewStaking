@@ -245,7 +245,7 @@ contract Staking is Ownable {
         uint256 tier = 0;
         for (uint256 i = 0; i < tierThresholds.length; i++) {
             if (amount >= tierThresholds[i] * 10 ** 9) {
-                tier = i;
+                tier = i + 1;
             }
         }
 
