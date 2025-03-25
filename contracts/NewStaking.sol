@@ -23,28 +23,16 @@ contract Staking is Ownable {
     }
 
     // Staking periods in days (0 = flexible, 1 = 1 month, 3 = 3 months, etc.)
-    // uint256[] public stakingPeriods = [
-    //     0 days,
-    //     1 * 30 days,
-    //     3 * 30 days,
-    //     6 * 30 days,
-    //     12 * 30 days
-    // ];
-
-    /// for test reduced staking time
     uint256[] public stakingPeriods = [
         0 days,
-        1 hours,
-        2 hours,
-        3 hours,
-        4 hours
+        1 * 30 days,
+        3 * 30 days,
+        6 * 30 days,
+        12 * 30 days
     ];
 
     // unlock period
-    // uint256 unlockPeriod = 7 days;
-
-    /// for test reduced unlockPeriod
-    uint256 unlockPeriod = 30 minutes;
+    uint256 public unlockPeriod = 7 days;
 
 
     // Annual Percentage Rates (APR) for each staking type
@@ -68,7 +56,7 @@ contract Staking is Ownable {
     Stake[] public stakes; // Array of all stakes
     uint256 public totalNumberOfStakes; // Total number of stakes created
     bool public isOpen; // Whether staking is open
-    uint256 public totalPaidRewards;
+    uint256 public totalPaidRewards; // Total paid rewards
 
     mapping(uint256 => uint256) public rewards; // Mapping of stake ID to reward amount
 
@@ -138,7 +126,6 @@ contract Staking is Ownable {
                 "Lock period not reached"
             );
         }
-
         stake.unlockStartTime = block.timestamp;
     }
 
@@ -150,10 +137,8 @@ contract Staking is Ownable {
         Stake storage stake = stakes[_id];
         require(!stake.finished, "Stake already withdrawn");
         require(stake.user == msg.sender, "Not the stake owner");
-
         uint256 rewardAmount = calculateReward(_id);
         require(rewardAmount > 0, "Insufficient reward amount");
-
         stake.finished = true;
         stakingToken.transfer(msg.sender, stake.tokenAmount + rewardAmount);
         rewards[_id] = rewardAmount;
@@ -170,10 +155,8 @@ contract Staking is Ownable {
         Stake storage stake = stakes[_id];
         require(!stake.finished, "Stake already withdrawn");
         require(stake.user == msg.sender, "Not the stake owner");
-
         uint256 rewardAmount = calculateReward(_id);
         require(rewardAmount > 0, "Insufficient reward amount");
-
         stake.stakingType = _stakingType;
         stake.startTime = block.timestamp;
         stake.tokenAmount += rewardAmount;
@@ -191,7 +174,6 @@ contract Staking is Ownable {
     ) public view returns (uint256[] memory) {
         uint256[] memory ids = new uint256[](totalNumberOfStakes);
         uint256 count = 0;
-
         for (uint256 i = 0; i < totalNumberOfStakes; i++) {
             Stake storage stake = stakes[i];
             if (stake.user == _owner) {
@@ -199,12 +181,10 @@ contract Staking is Ownable {
                 count++;
             }
         }
-
         uint256[] memory result = new uint256[](count);
         for (uint256 j = 0; j < count; j++) {
             result[j] = ids[j];
         }
-
         return result;
     }
 
@@ -224,7 +204,6 @@ contract Staking is Ownable {
         uint256[] memory ids = getStakeIdsByOwner(_owner);
         tiers = new uint256[](ids.length);
         multipliers = new uint256[](ids.length);
-
         for (uint256 i = 0; i < ids.length; i++) {
             tiers[i] = calculateLaunchpadTier(ids[i]);
 
@@ -232,7 +211,6 @@ contract Staking is Ownable {
 
             multipliers[i] = stakingMultipliers[stakingType];
         }
-
         return (tiers, multipliers);
     }
 
@@ -250,7 +228,6 @@ contract Staking is Ownable {
                 tier = i + 1;
             }
         }
-
         return tier;
     }
 
@@ -269,21 +246,12 @@ contract Staking is Ownable {
         if (stake.stakingType == 0) {
             rewardTime = stakingDuration;
         }
-
-        // return
-        //     (stake.tokenAmount *
-        //         (rewardTime *
-        //             stakingAPRs[stake.stakingType] +
-        //             (stakingDuration - rewardTime) *
-        //             stakingAPRs[0])) / (365 days * BASE);
-
-        /// for test 1 Year => 2 days
         return
             (stake.tokenAmount *
                 (rewardTime *
                     stakingAPRs[stake.stakingType] +
                     (stakingDuration - rewardTime) *
-                    stakingAPRs[0])) / (2 days * BASE);
+                    stakingAPRs[0])) / (365 days * BASE);
     }
 
     /**
@@ -301,9 +269,5 @@ contract Staking is Ownable {
      */
     function getStakeDetails(uint256 _id) public view returns (Stake memory) {
         return stakes[_id];
-    }
-
-    function emergencyWithdraw() external onlyOwner(){
-        stakingToken.transfer(msg.sender, stakingToken.balanceOf(address(this)));
     }
 }
