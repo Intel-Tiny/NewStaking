@@ -68,6 +68,7 @@ contract Staking is Ownable {
     Stake[] public stakes; // Array of all stakes
     uint256 public totalNumberOfStakes; // Total number of stakes created
     bool public isOpen; // Whether staking is open
+    uint256 public totalPaidRewards;
 
     mapping(uint256 => uint256) public rewards; // Mapping of stake ID to reward amount
 
@@ -156,6 +157,7 @@ contract Staking is Ownable {
         stake.finished = true;
         stakingToken.transfer(msg.sender, stake.tokenAmount + rewardAmount);
         rewards[_id] = rewardAmount;
+        totalPaidRewards += rewardAmount;
         emit Withdraw(_id, rewardAmount);
     }
 
@@ -260,7 +262,7 @@ contract Staking is Ownable {
     function calculateReward(uint256 _id) public view returns (uint256) {
         Stake storage stake = stakes[_id];
         if (stake.finished) return 0;
-        require(block.timestamp - stake.unlockStartTime >= unlockPeriod, "not reached unlock period");
+        require(block.timestamp - stake.unlockStartTime >= unlockPeriod && stake.unlockStartTime > 0, "not reached unlock period");
         uint256 rewardTime = stakingPeriods[stake.stakingType];
         uint256 stakingDuration = block.timestamp - stake.startTime - unlockPeriod;
 
