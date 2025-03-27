@@ -34,7 +34,6 @@ contract Staking is Ownable {
     // unlock period
     uint256 public unlockPeriod = 7 days;
 
-
     // Annual Percentage Rates (APR) for each staking type
     uint256[] public stakingAPRs = [30, 42, 60, 90, 120];
 
@@ -144,6 +143,7 @@ contract Staking is Ownable {
         uint256 rewardAmount = calculateReward(_id);
         require(rewardAmount > 0, "Insufficient reward amount");
         stake.finished = true;
+        require(stakingToken.balanceOf(address(this)) >= stake.tokenAmount + rewardAmount, "Not enough token in staking contract.");
         stakingToken.transfer(msg.sender, stake.tokenAmount + rewardAmount);
         rewards[_id] = rewardAmount;
         rewardsPerUser[msg.sender] += rewardAmount;
