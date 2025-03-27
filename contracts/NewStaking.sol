@@ -55,10 +55,12 @@ contract Staking is Ownable {
 
     Stake[] public stakes; // Array of all stakes
     uint256 public totalNumberOfStakes; // Total number of stakes created
+    uint256 public totalAmountOfStakes; // Total amount of stakes
     bool public isOpen; // Whether staking is open
     uint256 public totalPaidRewards; // Total paid rewards
 
     mapping(uint256 => uint256) public rewards; // Mapping of stake ID to reward amount
+    mapping(address => uint256) public rewardsPerUser; // Mapping of user to reward amount
 
     event Deposit(address indexed user, uint256 amount, uint256 stakingType);
     event Withdraw(uint256 indexed id, uint256 rewardAmount);
@@ -71,6 +73,7 @@ contract Staking is Ownable {
     constructor(address _stakingToken) Ownable(msg.sender) {
         stakingToken = IERC20(_stakingToken);
         totalNumberOfStakes = 0;
+        totalAmountOfStakes = 0;
     }
 
     /**
@@ -105,6 +108,7 @@ contract Staking is Ownable {
         );
 
         totalNumberOfStakes++;
+        totalAmountOfStakes += _amount;
         stakingToken.transferFrom(msg.sender, address(this), _amount);
         emit Deposit(msg.sender, _amount, _stakingType);
     }
@@ -142,7 +146,9 @@ contract Staking is Ownable {
         stake.finished = true;
         stakingToken.transfer(msg.sender, stake.tokenAmount + rewardAmount);
         rewards[_id] = rewardAmount;
+        rewardsPerUser[msg.sender] += rewardAmount;
         totalPaidRewards += rewardAmount;
+        totalAmountOfStakes -= stake.tokenAmount;
         emit Withdraw(_id, rewardAmount);
     }
 
@@ -161,6 +167,7 @@ contract Staking is Ownable {
         stake.startTime = block.timestamp;
         stake.tokenAmount += rewardAmount;
         stake.unlockStartTime = 0;
+        totalAmountOfStakes += rewardAmount;
         emit Restake(_id, _stakingType);
     }
 
