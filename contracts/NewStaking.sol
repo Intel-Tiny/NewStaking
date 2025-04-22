@@ -281,16 +281,24 @@ contract Staking is Ownable {
                 (stake.tokenAmount *
                     BASE_SCORE_VALUE *
                     stakingMultipliers[stake.stakingType]) /
-                BASE / 1e9;
+                BASE /
+                1e9;
         }
         return totalScore;
     }
-
+    /**
+     * @dev Determines the tier level for a given owner based on their total score
+     * @param _owner The address of the owner to check the tier for
+     * @return tier The tier level (1-5) that the owner qualifies for
+     * @notice The tier is determined by comparing the owner's total score against predefined tier thresholds
+     * @notice Tier levels range from 1 to 5, with 5 being the highest
+     * @notice The owner's tier is the highest level where their score meets or exceeds the tier's threshold
+     */
     function getTierByOwner(address _owner) public view returns (uint8) {
         uint256 totalScore = getTotalScore(_owner);
         uint8 tier;
-        for(uint8 i = 0; i < 5; i ++){
-            if(totalScore >= tierScore[i]){
+        for (uint8 i = 0; i < 5; i++) {
+            if (totalScore >= tierScore[i]) {
                 tier = i + 1;
             }
         }
