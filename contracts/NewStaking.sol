@@ -37,18 +37,8 @@ contract Staking is Ownable {
     // Annual Percentage Rates (APR) for each staking type
     uint256[] public stakingAPRs = [30, 42, 60, 90, 120];
 
-    // Tier thresholds for launchpad eligibility
-    uint256[] public tierThresholds = [
-        1000,
-        5000,
-        20000,
-        50000,
-        100000,
-        250000
-    ];
-
     // Multipliers for staking types (used for launchpad tier calculation)
-    uint256[] public stakingMultipliers = [0, 10, 12, 15, 20];
+    uint256[] public stakingMultipliers = [10, 12, 18, 24, 30];
 
     uint256 public constant BASE = 1000; // Base value for APR calculations
 
@@ -57,9 +47,13 @@ contract Staking is Ownable {
     uint256 public totalAmountOfStakes; // Total amount of stakes
     bool public isOpen; // Whether staking is open
     uint256 public totalPaidRewards; // Total paid rewards
+    uint256 public BASE_SCORE_VALUE = 1; // Base score value used as multiplier in score calculations
 
     mapping(uint256 => uint256) public rewards; // Mapping of stake ID to reward amount
-    mapping(address => uint256) public rewardsPerUser; // Mapping of user to reward amount
+
+    mapping(address => uint256) public rewardsPerUser; // Mapping of user address to their total reward amount
+
+    mapping(uint8 => uint256) public tierScore; // Mapping of tier level (uint8) to its required score
 
     event Deposit(address indexed user, uint256 amount, uint256 stakingType);
     event Withdraw(uint256 indexed id, uint256 rewardAmount);
@@ -73,6 +67,11 @@ contract Staking is Ownable {
         stakingToken = IERC20(_stakingToken);
         totalNumberOfStakes = 0;
         totalAmountOfStakes = 0;
+        tierScore[0] = 0;
+        tierScore[1] = 50_000;
+        tierScore[2] = 150_000;
+        tierScore[3] = 250_000;
+        tierScore[4] = 500_000;
     }
 
     /**
@@ -90,7 +89,11 @@ contract Staking is Ownable {
      * @param _amount Amount of tokens to stake.
      * @param _stakingType Type of staking (0 = flexible, 1+ = locked).
      */
-    function stakeTokens(uint256 _amount, address _user, uint256 _stakingType) external {
+    function stakeTokens(
+        uint256 _amount,
+        address _user,
+        uint256 _stakingType
+    ) external {
         require(isOpen, "Staking is not available");
         require(_amount > 0, "Cannot stake 0 tokens");
 
@@ -143,7 +146,11 @@ contract Staking is Ownable {
         uint256 rewardAmount = calculateReward(_id);
         require(rewardAmount > 0, "Insufficient reward amount");
         stake.finished = true;
-        require(stakingToken.balanceOf(address(this)) >= stake.tokenAmount + rewardAmount, "Not enough token in staking contract.");
+        require(
+            stakingToken.balanceOf(address(this)) >=
+                stake.tokenAmount + rewardAmount,
+            "Not enough token in staking contract."
+        );
         stakingToken.transfer(msg.sender, stake.tokenAmount + rewardAmount);
         rewards[_id] = rewardAmount;
         rewardsPerUser[msg.sender] += rewardAmount;
@@ -196,49 +203,6 @@ contract Staking is Ownable {
     }
 
     /**
-     * @dev Returns the Launchpad tiers and multipliers for all stakes owned by a specific address.
-     * @param _owner The address of the staker.
-     * @return tiers An array of tiers corresponding to each stake.
-     * @return multipliers An array of multipliers corresponding to each stake.
-     */
-    function getLaunchpadTiersByOwner(
-        address _owner
-    )
-        public
-        view
-        returns (uint256[] memory tiers, uint256[] memory multipliers)
-    {
-        uint256[] memory ids = getStakeIdsByOwner(_owner);
-        tiers = new uint256[](ids.length);
-        multipliers = new uint256[](ids.length);
-        for (uint256 i = 0; i < ids.length; i++) {
-            tiers[i] = calculateLaunchpadTier(ids[i]);
-
-            uint256 stakingType = stakes[ids[i]].stakingType;
-
-            multipliers[i] = stakingMultipliers[stakingType];
-        }
-        return (tiers, multipliers);
-    }
-
-    /**
-     * @dev Calculates the launchpad tier for a specific stake.
-     * @param _id ID of the stake.
-     * @return Tier level (0 = no tier, 1+ = tier level).
-     */
-    function calculateLaunchpadTier(uint256 _id) public view returns (uint256) {
-        Stake storage stake = stakes[_id];
-        uint256 amount = stake.tokenAmount;
-        uint256 tier = 0;
-        for (uint256 i = 0; i < tierThresholds.length; i++) {
-            if (amount >= tierThresholds[i] * 10 ** 9) {
-                tier = i + 1;
-            }
-        }
-        return tier;
-    }
-
-    /**
      * @dev Calculates the reward for a specific stake.
      * @param _id ID of the stake.
      * @return Reward amount.
@@ -246,9 +210,15 @@ contract Staking is Ownable {
     function calculateReward(uint256 _id) public view returns (uint256) {
         Stake storage stake = stakes[_id];
         if (stake.finished) return 0;
-        require(block.timestamp - stake.unlockStartTime >= unlockPeriod && stake.unlockStartTime > 0, "not reached unlock period");
+        require(
+            block.timestamp - stake.unlockStartTime >= unlockPeriod &&
+                stake.unlockStartTime > 0,
+            "not reached unlock period"
+        );
         uint256 rewardTime = stakingPeriods[stake.stakingType];
-        uint256 stakingDuration = block.timestamp - stake.startTime - unlockPeriod;
+        uint256 stakingDuration = block.timestamp -
+            stake.startTime -
+            unlockPeriod;
 
         if (stake.stakingType == 0) {
             rewardTime = stakingDuration;
@@ -276,5 +246,44 @@ contract Staking is Ownable {
      */
     function getStakeDetails(uint256 _id) public view returns (Stake memory) {
         return stakes[_id];
+    }
+
+    /**
+     * @dev Sets the score required for a specific tier level.
+     * @param _tier The tier level to set score.
+     * @param _score The score value to set for the tier.
+     * @notice Only callable by contract owner.
+     */
+    function setTierScore(uint8 _tier, uint256 _score) external onlyOwner {
+        tierScore[_tier] = _score;
+    }
+
+    /**
+     * @dev Sets the base score value used in total score calculations.
+     * @param _newValue The new base score value to use.
+     * @notice Only callable by contract owner.
+     */
+    function setBaseScoreValue(uint256 _newValue) external onlyOwner {
+        BASE_SCORE_VALUE = _newValue;
+    }
+
+    /**
+     * @dev Calculates and returns the total score for a given owner.
+     * @param _owner Address of the user to calculate score for.
+     * @return totalScore The calculated total score based on user's stakes.
+     * @notice Score is calculated as: sum of (tokenAmount * BASE_SCORE_VALUE * stakingMultiplier / 100) for all stakes.
+     */
+    function getTotalScore(address _owner) public view returns (uint256) {
+        uint256[] memory ids = getStakeIdsByOwner(_owner);
+        uint256 totalScore = 0;
+        for (uint256 i = 0; i < ids.length; i++) {
+            Stake storage stake = stakes[i];
+            totalScore +=
+                (stake.tokenAmount *
+                    BASE_SCORE_VALUE *
+                    stakingMultipliers[stake.stakingType]) /
+                100;
+        }
+        return totalScore;
     }
 }
