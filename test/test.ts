@@ -105,65 +105,64 @@ describe("Deposit token", async function(){
   })
 })
 
-// describe("user1 actions", async function(){
-//   let rewardAmount = 0;
-//   it("unlock", async function(){
-//     await time.increase(30 * 24 * 60 * 60); // Increase time by 24 hours
-//     await stakingContract.connect(user1).initiateUnlock(0);
-//   })
-//   it("calculate Reward", async function(){
-//     await time.increase(7 * 24 * 60 * 60); // Increase time by 24 hours
-//     rewardAmount = await stakingContract.connect(user1).calculateReward(0);
-//     console.log("user1 rewardAmount: ", rewardAmount);
-//   })
-//   it("withdraw", async function(){
-//     await stakingContract.connect(user1).withdrawStake(0);
-//   })
-// })
+describe("user1 actions", async function(){
+  let rewardAmount = 0;
+  it("unlock", async function(){
+    await time.increase(30 * 24 * 60 * 60); // Increase time by 24 hours
+    await stakingContract.connect(user1).initiateUnlock(0);
+  })
+  it("calculate Reward", async function(){
+    await time.increase(7 * 24 * 60 * 60); // Increase time by 24 hours
+    rewardAmount = await stakingContract.connect(user1).calculateReward(0);
+    console.log("user1 rewardAmount: ", rewardAmount);
+  })
+  it("withdraw", async function(){
+    await stakingContract.connect(user1).withdrawStake(0);
+  })
+})
 
-// describe("user2 actions", async function(){
-//   let rewardAmount = 0;
-//   it("unlock", async function(){
-//     await stakingContract.connect(user2).initiateUnlock(1);
-//   })
-//   it("calculate Reward", async function(){
-//     await time.increase(7 * 24 * 60 * 60); 
-//     rewardAmount = await stakingContract.connect(user2).calculateReward(1);
-//     console.log("user2 rewardAmount: ", rewardAmount);
-//   })
-//   it("restake", async function(){
-//     await stakingContract.connect(user2).restakeRewards(1, 2);
-//   })
-//   it("unlock", async function(){
-//     await time.increase(90 * 24 * 60 * 60); 
-//     await stakingContract.connect(user2).initiateUnlock(1);
-//   })
-//   it("calculate Reward", async function(){
-//     await time.increase(7 * 24 * 60 * 60); // Increase time by 24 hours
-//     rewardAmount = await stakingContract.connect(user2).calculateReward(1);
-//     console.log("user2 rewardAmount: ", rewardAmount);
-//   })
-//   it("withdraw", async function(){
-//     await stakingContract.connect(user2).withdrawStake(1);
-//   })
- 
-// })
+describe("user2 actions", async function(){
+  let rewardAmount = 0;
+  it("unlock", async function(){
+    await stakingContract.connect(user2).initiateUnlock(1);
+  })
+  it("calculate Reward", async function(){
+    await time.increase(7 * 24 * 60 * 60); 
+    rewardAmount = await stakingContract.connect(user2).calculateReward(1);
+    console.log("user2 rewardAmount: ", rewardAmount);
+  })
+  it("restake", async function(){
+    await stakingContract.connect(user2).restakeRewards(1, 2);
+  })
+  it("unlock", async function(){
+    await time.increase(90 * 24 * 60 * 60); 
+    await stakingContract.connect(user2).initiateUnlock(1);
+  })
+  it("calculate Reward", async function(){
+    await time.increase(7 * 24 * 60 * 60); // Increase time by 24 hours
+    rewardAmount = await stakingContract.connect(user2).calculateReward(1);
+    console.log("user2 rewardAmount: ", rewardAmount);
+  })
+  it("withdraw", async function(){
+    await stakingContract.connect(user2).withdrawStake(1);
+  })
+})
 
-// describe("user3 actions", async function(){
-//   let rewardAmount = 0;
-//   it("unlock", async function(){
-//     await time.increase(9 * 24 * 60 * 60); // Increase time by 24 hours
-//     await stakingContract.connect(user3).initiateUnlock(2);
-//   })
-//   it("calculate Reward", async function(){
-//     await time.increase(7 * 24 * 60 * 60); // Increase time by 24 hours
-//     rewardAmount = await stakingContract.connect(user3).calculateReward(2);
-//     console.log("user3 rewardAmount: ", rewardAmount);
-//   })
-//   it("withdraw", async function(){
-//     await stakingContract.connect(user3).withdrawStake(2);
-//   })
-// })
+describe("user3 actions", async function(){
+  let rewardAmount = 0;
+  it("unlock", async function(){
+    await time.increase(9 * 24 * 60 * 60); // Increase time by 24 hours
+    await stakingContract.connect(user3).initiateUnlock(2);
+  })
+  it("calculate Reward", async function(){
+    await time.increase(7 * 24 * 60 * 60); // Increase time by 24 hours
+    rewardAmount = await stakingContract.connect(user3).calculateReward(2);
+    console.log("user3 rewardAmount: ", rewardAmount);
+  })
+  it("withdraw", async function(){
+    await stakingContract.connect(user3).withdrawStake(2);
+  })
+})
 
 describe("Calculate Scores", async function(){
   it("calculate scores", async function(){

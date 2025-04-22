@@ -277,10 +277,18 @@ contract Staking is Ownable {
         uint256 totalScore = 0;
         for (uint256 i = 0; i < ids.length; i++) {
             Stake storage stake = stakes[ids[i]];
+            uint256 rewardTime = stakingPeriods[stake.stakingType];
+            uint256 stakingDuration = block.timestamp - stake.startTime;
+            uint256 exceeds = 0;
+            if (stakingDuration > rewardTime && stake.stakingType > 0) {
+                exceeds = 1;
+            }
             totalScore +=
-                (stake.tokenAmount *
-                    BASE_SCORE_VALUE *
-                    stakingMultipliers[stake.stakingType]) /
+                ((stake.tokenAmount *
+                    stakingMultipliers[stake.stakingType] +
+                    exceeds *
+                    stake.tokenAmount *
+                    stakingMultipliers[0]) * BASE_SCORE_VALUE) /
                 BASE /
                 1e9;
         }
