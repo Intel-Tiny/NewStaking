@@ -3,7 +3,8 @@ import { ethers } from 'hardhat';
 async function main() {
     // Retrieve the first signer (default account in Hardhat) to use as the deployer.
     const [deployer] = await ethers.getSigners();
-    const tokenAddress = "0x129e5915326ed86f831b0e035acda34b209633d5"; // mainnet $PAPPLE address
+    // const tokenAddress = "0x129e5915326ed86f831b0e035acda34b209633d5"; // mainnet $PAPPLE address 
+    const tokenAddress = "0xe5e217b6722d45be85fb37f5d7f4f15950c1b80a"; // mainnet $PAPPLE address 
     // Step 1: Get the contract factory for the staking contract
     const StakingFactory = await ethers.getContractFactory('Staking');
     // Step 2: Get the deploy transaction

@@ -285,4 +285,15 @@ contract Staking is Ownable {
         }
         return totalScore;
     }
+
+    function getTierByOwner(address _owner) public view returns (uint8) {
+        uint256 totalScore = getTotalScore(_owner);
+        uint8 tier;
+        for(uint8 i = 0; i < 5; i ++){
+            if(totalScore >= tierScore[i]){
+                tier = i + 1;
+            }
+        }
+        return tier;
+    }
 }
