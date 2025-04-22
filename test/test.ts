@@ -13,10 +13,9 @@ let usdcAddress: any;
 let stakingContract: any;
 let stakingContractAddress: any;
 
-describe("Create Initial Contracts of all types", async function() {
+describe("Create Initial Contracts of all types", async function () {
   it("get accounts", async function () {
-    [owner, user1, user2, user3, user4, user5] =
-      await ethers.getSigners();
+    [owner, user1, user2, user3, user4, user5] = await ethers.getSigners();
     console.log("\tAccount address\t", await owner.getAddress());
   });
   it("deploy USDC Token Contract", async function () {
@@ -30,80 +29,92 @@ describe("Create Initial Contracts of all types", async function() {
     stakingContract = await instanceStaking.deploy(usdcAddress);
     stakingContractAddress = await stakingContract.getAddress();
     console.log("\tStaking Contract deployed at:", stakingContractAddress);
-  })
+  });
 });
 
-describe("Distribute tokens to users", async function() {
+describe("Distribute tokens to users", async function () {
   let amount = ethers.parseUnits("10000000", 9);
-  it("send to user1", async function() {
+  it("send to user1", async function () {
     await usdc.transfer(user1, amount);
     expect(await usdc.balanceOf(user1)).to.equal(amount);
-  })
-  it("send to user2", async function() {
+  });
+  it("send to user2", async function () {
     await usdc.transfer(user2, amount);
     expect(await usdc.balanceOf(user2)).to.equal(amount);
-  })
-  it("send to user3", async function() {
+  });
+  it("send to user3", async function () {
     await usdc.transfer(user3, amount);
     expect(await usdc.balanceOf(user3)).to.equal(amount);
-  })
-  it("send to user4", async function() {
+  });
+  it("send to user4", async function () {
     await usdc.transfer(user4, amount);
     expect(await usdc.balanceOf(user4)).to.equal(amount);
-  })
-  it("send to user5", async function() {
+  });
+  it("send to user5", async function () {
     await usdc.transfer(user5, amount);
     expect(await usdc.balanceOf(user5)).to.equal(amount);
-  })
-})
+  });
+});
 
-describe("Init staking contract", async function(){
-  it("init", async function(){
+describe("Init staking contract", async function () {
+  it("init", async function () {
     let amount: BigInt = BigInt(100000000 * 1e9);
     await usdc.approve(stakingContractAddress, amount);
     await stakingContract.initialize(amount);
     expect(await stakingContract.isOpen()).to.equal(true);
-  })
-})
+  });
+});
 
-describe("Deposit token", async function(){
-  it("user1 deposit", async function(){
+describe("Deposit token", async function () {
+  it("user1 deposit", async function () {
     let amount: BigInt = BigInt(100000 * 1e9);
     await usdc.connect(user1).approve(stakingContractAddress, amount);
     await stakingContract.connect(user1).stakeTokens(amount, user1.address, 0);
-    expect(Number((await stakingContract.getStakeIdsByOwner(user1))[0])).to.equal(0);
-  })
-  it("user2 deposit", async function(){
+    expect(
+      Number((await stakingContract.getStakeIdsByOwner(user1))[0])
+    ).to.equal(0);
+  });
+  it("user2 deposit", async function () {
     let amount: BigInt = BigInt(500000 * 1e9);
     await usdc.connect(user2).approve(stakingContractAddress, amount);
     await stakingContract.connect(user2).stakeTokens(amount, user2.address, 1);
-    expect(Number((await stakingContract.getStakeIdsByOwner(user2))[0])).to.equal(1);
-  })
-  it("user3 deposit", async function(){
+    expect(
+      Number((await stakingContract.getStakeIdsByOwner(user2))[0])
+    ).to.equal(1);
+  });
+  it("user3 deposit", async function () {
     let amount: BigInt = BigInt(2000000 * 1e9);
     await usdc.connect(user3).approve(stakingContractAddress, amount);
     await stakingContract.connect(user3).stakeTokens(amount, user3.address, 2);
-    expect(Number((await stakingContract.getStakeIdsByOwner(user3))[0])).to.equal(2);
-  })
-  it("user4 deposit", async function(){
+    expect(
+      Number((await stakingContract.getStakeIdsByOwner(user3))[0])
+    ).to.equal(2);
+  });
+  it("user4 deposit", async function () {
     let amount: BigInt = BigInt(100000 * 1e9);
     await usdc.connect(user4).approve(stakingContractAddress, amount);
     await stakingContract.connect(user4).stakeTokens(amount, user4.address, 3);
-    expect(Number((await stakingContract.getStakeIdsByOwner(user4))[0])).to.equal(3);
-  })
-  it("user5 deposit", async function(){
+    expect(
+      Number((await stakingContract.getStakeIdsByOwner(user4))[0])
+    ).to.equal(3);
+  });
+  it("user5 deposit", async function () {
     let amount: BigInt = BigInt(100000 * 1e9);
     await usdc.connect(user5).approve(stakingContractAddress, amount);
     await stakingContract.connect(user5).stakeTokens(amount, user5.address, 4);
-    expect(Number((await stakingContract.getStakeIdsByOwner(user5))[0])).to.equal(4);
-  })
-  it("user1 deposit", async function(){
+    expect(
+      Number((await stakingContract.getStakeIdsByOwner(user5))[0])
+    ).to.equal(4);
+  });
+  it("user1 deposit", async function () {
     let amount: BigInt = BigInt(100000 * 1e9);
     await usdc.connect(user1).approve(stakingContractAddress, amount);
     await stakingContract.connect(user1).stakeTokens(amount, user1.address, 1);
-    expect(Number((await stakingContract.getStakeIdsByOwner(user1))[1])).to.equal(5);
-  })
-})
+    expect(
+      Number((await stakingContract.getStakeIdsByOwner(user1))[1])
+    ).to.equal(5);
+  });
+});
 
 describe("user1 actions", async function(){
   let rewardAmount = 0;
@@ -127,7 +138,7 @@ describe("user2 actions", async function(){
     await stakingContract.connect(user2).initiateUnlock(1);
   })
   it("calculate Reward", async function(){
-    await time.increase(7 * 24 * 60 * 60); 
+    await time.increase(7 * 24 * 60 * 60);
     rewardAmount = await stakingContract.connect(user2).calculateReward(1);
     console.log("user2 rewardAmount: ", rewardAmount);
   })
@@ -135,7 +146,7 @@ describe("user2 actions", async function(){
     await stakingContract.connect(user2).restakeRewards(1, 2);
   })
   it("unlock", async function(){
-    await time.increase(90 * 24 * 60 * 60); 
+    await time.increase(90 * 24 * 60 * 60);
     await stakingContract.connect(user2).initiateUnlock(1);
   })
   it("calculate Reward", async function(){
@@ -164,8 +175,8 @@ describe("user3 actions", async function(){
   })
 })
 
-describe("Calculate Scores", async function(){
-  it("calculate scores", async function(){
+describe("Calculate Scores", async function () {
+  it("calculate scores", async function () {
     const score1 = await stakingContract.getTotalScore(user1);
     console.log("user1 score: ", score1);
     const score2 = await stakingContract.getTotalScore(user2);
@@ -175,9 +186,18 @@ describe("Calculate Scores", async function(){
     const score4 = await stakingContract.getTotalScore(user4);
     console.log("user4 score: ", score4);
     const score5 = await stakingContract.getTotalScore(user5);
-    console.log("user5 score: ", score5);    
-  })
-})
+    console.log("user5 score: ", score5);
+  });
+});
+
+describe("getUsersSortedByScore", async function () {
+  it("get all", async function () {
+    const [users, scores] = await stakingContract.getUsersSortedByScore();
+    console.log([user1.address, user2.address, user3.address, user4.address, user5.address]);
+    console.log("users: ", users);
+    console.log("scores: ", scores);
+  });
+});
 
 describe("Get Tier", async function(){
   it("get Tier Score", async function(){
@@ -192,8 +212,8 @@ describe("Get Tier", async function(){
     const tier5 = await stakingContract.getTierByOwner(user5);
     console.log("Tier5: ", tier5);
   })
-  
-})  
+
+})
 
 describe("set Base Score", async function(){
   it("set base score", async function(){
@@ -233,5 +253,4 @@ describe("TierScore", async function(){
     const tierScore4 = await stakingContract.tierScore(4);
     console.log("Tier Score 4: ", tierScore4);
   })
-})  
-
+})

@@ -277,16 +277,18 @@ contract Staking is Ownable {
         uint256 totalScore = 0;
         for (uint256 i = 0; i < ids.length; i++) {
             Stake storage stake = stakes[ids[i]];
+            if (stake.finished) continue;
             uint256 rewardTime = stakingPeriods[stake.stakingType];
             uint256 stakingDuration = block.timestamp - stake.startTime;
-            uint256 exceeds = 0;
-            if (stakingDuration > rewardTime && stake.stakingType > 0) {
-                exceeds = 1;
+            uint256 exceeds = 1;
+            if (stakingDuration > rewardTime) {
+                exceeds = 0;
             }
             totalScore +=
-                ((stake.tokenAmount *
+                ((exceeds *
+                    stake.tokenAmount *
                     stakingMultipliers[stake.stakingType] +
-                    exceeds *
+                    (1 - exceeds) *
                     stake.tokenAmount *
                     stakingMultipliers[0]) * BASE_SCORE_VALUE) /
                 BASE /
@@ -311,5 +313,63 @@ contract Staking is Ownable {
             }
         }
         return tier;
+    }
+
+    function getUsersSortedByScore()
+        public
+        view
+        returns (address[] memory, uint256[] memory)
+    {
+        // First, collect all unique users with active stakes
+        address[] memory allUsers = new address[](stakes.length);
+        uint256 userCount = 0;
+
+        // Use an array to track processed addresses instead of mapping
+        address[] memory processed = new address[](stakes.length);
+        uint256 processedCount = 0;
+
+        // Find all unique users with active stakes
+        for (uint256 i = 0; i < stakes.length; i++) {
+            Stake storage stake = stakes[i];
+            if (stake.finished) continue;
+
+            bool alreadyProcessed = false;
+            for (uint256 j = 0; j < processedCount; j++) {
+                if (processed[j] == stake.user) {
+                    alreadyProcessed = true;
+                    break;
+                }
+            }
+
+            if (!alreadyProcessed) {
+                allUsers[userCount] = stake.user;
+                processed[processedCount] = stake.user;
+                userCount++;
+                processedCount++;
+            }
+        }
+
+        // Create properly sized arrays
+        address[] memory users = new address[](userCount);
+        uint256[] memory scores = new uint256[](userCount);
+
+        // Populate with actual users and their scores
+        for (uint256 i = 0; i < userCount; i++) {
+            users[i] = allUsers[i];
+            scores[i] = getTotalScore(allUsers[i]);
+        }
+
+        // Sort using simple bubble sort (not gas efficient for large arrays)
+        for (uint256 i = 0; i < userCount - 1; i++) {
+            for (uint256 j = 0; j < userCount - i - 1; j++) {
+                if (scores[j] < scores[j + 1]) {
+                    // Swap scores
+                    (scores[j], scores[j + 1]) = (scores[j + 1], scores[j]);
+                    // Swap addresses
+                    (users[j], users[j + 1]) = (users[j + 1], users[j]);
+                }
+            }
+        }
+        return (users, scores);
     }
 }
