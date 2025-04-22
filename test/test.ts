@@ -97,11 +97,11 @@ describe("Deposit token", async function(){
     await stakingContract.connect(user5).stakeTokens(amount, user5.address, 4);
     expect(Number((await stakingContract.getStakeIdsByOwner(user5))[0])).to.equal(4);
   })
-  it("user5 deposit", async function(){
+  it("user1 deposit", async function(){
     let amount: BigInt = BigInt(1000 * 1e9);
-    await usdc.connect(user5).approve(stakingContractAddress, amount);
-    await stakingContract.connect(user5).stakeTokens(amount, user5.address, 4);
-    expect(Number((await stakingContract.getStakeIdsByOwner(user5))[0])).to.equal(4);
+    await usdc.connect(user1).approve(stakingContractAddress, amount);
+    await stakingContract.connect(user1).stakeTokens(amount, user1.address, 1);
+    expect(Number((await stakingContract.getStakeIdsByOwner(user1))[1])).to.equal(5);
   })
 })
 
@@ -118,10 +118,6 @@ describe("user1 actions", async function(){
   })
   it("withdraw", async function(){
     await stakingContract.connect(user1).withdrawStake(0);
-  })
-  it("calculate Launchpad Tier", async function() {
-    const type = await stakingContract.calculateLaunchpadTier(0);
-    console.log("user1 Tier: ", type);
   })
 })
 
@@ -150,10 +146,7 @@ describe("user2 actions", async function(){
   it("withdraw", async function(){
     await stakingContract.connect(user2).withdrawStake(1);
   })
-  it("calculate Launchpad Tier", async function() {
-    const type = await stakingContract.calculateLaunchpadTier(1);
-    console.log("user2 Tier: ", type);
-  })
+ 
 })
 
 describe("user3 actions", async function(){
@@ -170,36 +163,59 @@ describe("user3 actions", async function(){
   it("withdraw", async function(){
     await stakingContract.connect(user3).withdrawStake(2);
   })
-  it("calculate Launchpad Tier", async function() {
-    const type = await stakingContract.calculateLaunchpadTier(2);
-    console.log("user3 Tier: ", type);
+})
+
+describe("Calculate Scores", async function(){
+  it("calculate scores", async function(){
+    const score1 = await stakingContract.getTotalScore(user1);
+    console.log("user1 score: ", score1);
+    const score2 = await stakingContract.getTotalScore(user2);
+    console.log("user2 score: ", score2);
+    const score3 = await stakingContract.getTotalScore(user3);
+    console.log("user3 score: ", score3);
+    const score4 = await stakingContract.getTotalScore(user4);
+    console.log("user4 score: ", score4);
+    const score5 = await stakingContract.getTotalScore(user5);
+    console.log("user5 score: ", score5);    
   })
 })
 
-describe("get tiers", async function(){
-  it("user1", async function(){
-    const result = await stakingContract.getLaunchpadTiersByOwner(user1.address);
-    console.log("tiers: ", result.tiers);
-    console.log("multipliers: ", result.multipliers);
-  })
-  it("user2", async function(){
-    const result = await stakingContract.getLaunchpadTiersByOwner(user2.address);
-    console.log("tiers: ", result.tiers);
-    console.log("multipliers: ", result.multipliers);
-  })
-  it("user3", async function(){
-    const result = await stakingContract.getLaunchpadTiersByOwner(user3.address);
-    console.log("tiers: ", result.tiers);
-    console.log("multipliers: ", result.multipliers);
-  })
-  it("user4", async function(){
-    const result = await stakingContract.getLaunchpadTiersByOwner(user4.address);
-    console.log("tiers: ", result.tiers);
-    console.log("multipliers: ", result.multipliers);
-  })
-  it("user5", async function(){
-    const result = await stakingContract.getLaunchpadTiersByOwner(user5.address);
-    console.log("tiers: ", result.tiers);
-    console.log("multipliers: ", result.multipliers);
+describe("set Base Score", async function(){
+  it("set base score", async function(){
+    await stakingContract.setBaseScoreValue(2);
+    const baseScore = await stakingContract.BASE_SCORE_VALUE();
+    expect(baseScore).to.equal(2);
   })
 })
+
+describe("TierScore", async function(){
+  it("get Tier Score", async function(){
+    const tierScore0 = await stakingContract.tierScore(0);
+    console.log("Tier Score 0: ", tierScore0);
+    const tierScore1 = await stakingContract.tierScore(1);
+    console.log("Tier Score 1: ", tierScore1);
+    const tierScore2 = await stakingContract.tierScore(2);
+    console.log("Tier Score 2: ", tierScore2);
+    const tierScore3 = await stakingContract.tierScore(3);
+    console.log("Tier Score 3: ", tierScore3);
+    const tierScore4 = await stakingContract.tierScore(4);
+    console.log("Tier Score 4: ", tierScore4);
+  })
+  it("set Tier Score", async function(){
+    await stakingContract.setTierScore(0, 100);
+    const tierScore0 = await stakingContract.tierScore(0);
+    console.log("Tier Score 0: ", tierScore0);
+    await stakingContract.setTierScore(1, 100);
+    const tierScore1 = await stakingContract.tierScore(1);
+    console.log("Tier Score 1: ", tierScore1);
+    await stakingContract.setTierScore(2, 100);
+    const tierScore2 = await stakingContract.tierScore(2);
+    console.log("Tier Score 2: ", tierScore2);
+    await stakingContract.setTierScore(3, 100);
+    const tierScore3 = await stakingContract.tierScore(3);
+    console.log("Tier Score 3: ", tierScore3);
+    await stakingContract.setTierScore(4, 100);
+    const tierScore4 = await stakingContract.tierScore(4);
+    console.log("Tier Score 4: ", tierScore4);
+  })
+})  

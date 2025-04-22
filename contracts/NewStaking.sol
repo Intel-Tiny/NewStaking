@@ -3,7 +3,6 @@ pragma solidity ^0.8.19;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-
 /**
  * @title Staking Contract
  * @dev A staking contract that allows users to stake ERC20 tokens and earn rewards based on staking duration and tier.
@@ -38,7 +37,7 @@ contract Staking is Ownable {
     uint256[] public stakingAPRs = [30, 42, 60, 90, 120];
 
     // Multipliers for staking types (used for launchpad tier calculation)
-    uint256[] public stakingMultipliers = [10, 12, 18, 24, 30];
+    uint256[] public stakingMultipliers = [1000, 1200, 1800, 2400, 3000];
 
     uint256 public constant BASE = 1000; // Base value for APR calculations
 
@@ -277,12 +276,12 @@ contract Staking is Ownable {
         uint256[] memory ids = getStakeIdsByOwner(_owner);
         uint256 totalScore = 0;
         for (uint256 i = 0; i < ids.length; i++) {
-            Stake storage stake = stakes[i];
+            Stake storage stake = stakes[ids[i]];
             totalScore +=
                 (stake.tokenAmount *
                     BASE_SCORE_VALUE *
                     stakingMultipliers[stake.stakingType]) /
-                100;
+                BASE / 1e9;
         }
         return totalScore;
     }
